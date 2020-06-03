@@ -452,48 +452,39 @@ int write_packet_data(unsigned short *src, unsigned char *dst, int width, int he
 	return k;
 }
 
-int write_packet_image(unsigned char *pPacketImage, int InW, int InH, int ExtW, int ExtH, unsigned char *pIn, unsigned short *Output_Y[OutputLayerNum], unsigned short *Output_UV[OutputLayerNum])
+// int write_packet_image(unsigned char *pPacketImage, int InW, int InH, int ExtW, int ExtH, unsigned char *pIn, unsigned short *Output_Y[OutputLayerNum], unsigned short *Output_UV[OutputLayerNum])
+int write_packet_image(int InW, int InH, int ExtW, int ExtH, unsigned short *Output_Y[OutputLayerNum], unsigned short *Output_UV[OutputLayerNum],
+		unsigned char *Packed_Y[OutputLayerNum], unsigned char *Packed_UV[OutputLayerNum])
 {
 	int i, j;
 	int w = InW, h = InH;
-	int wsize = 0;
+	int wsize = 0, llsize = 0;
 
-
-	//layer0 8bit  y
-	for (i = 0; i < h; i++) {
-		for (j = 0; j < w; j++) {
-			pPacketImage[i*w + j] = pIn[i*w + j];
-		}
-	}
-	wsize = w * h;
+	/* CLOG_INFO("%s E", __func__); */
+	printf("%s E\n", __func__);
 	w = ExtW >> 1;
 	h = ExtH >> 1;
 
 	//layer1~4  y
 	for (i = 0; i < 4; i++)
 	{
-		wsize += write_packet_data(Output_Y[i], pPacketImage + wsize, w, h);
+		llsize = write_packet_data(Output_Y[i], Packed_Y[i], w, h);
+		//trace_without_prefix("data.save.binary YLL%d_%dx%d.nv12 0x%08x++0x%x\r\n", i + 1, w, h, Output_Y[i], llsize);
+		wsize += llsize;
 		w = w >> 1;
 		h = h >> 1;
 	}
 
 
-	w = InW;
-	h = InH >> 1;
-	//layer0 8bit  uv
-	for (i = 0; i < h; i++) {
-		for (j = 0; j < w; j++) {
-			*(pPacketImage + wsize + i * w + j) = *(pIn + InW * InH + i * w + j);
-		}
-	}
-	wsize += w * h;
 	w = ExtW >> 1;
 	h = ExtH >> 2;
 
 	//layer1~4  uv
 	for (i = 0; i < 4; i++)
 	{
-		wsize += write_packet_data(Output_UV[i], pPacketImage + wsize, w, h);
+		llsize = write_packet_data(Output_UV[i], Packed_UV[i], w, h);
+		//trace_without_prefix("data.save.binary UVLL%d_%dx%d.nv12 0x%08x++0x%x\r\n", i + 1, w, h, Output_UV[i], llsize);
+		wsize += llsize;
 		w = w >> 1;
 		h = h >> 1;
 	}
@@ -607,28 +598,34 @@ int save_file_packet_image(unsigned char *pPacketImage, int InW, int InH, int Ex
 }
 
 
-int LoadRegFromFile(char *filename, stDWT *dwt_reg,
-	int *yl1_width, int *yl2_width, int *yl3_width, int *yl4_width, int *yl1_height, int *yl2_height, int *yl3_height, int *yl4_height, 
-	int *uvl1_width, int *uvl2_width, int *uvl3_width, int *uvl4_width, int *uvl1_height, int *uvl2_height, int *uvl3_height, int *uvl4_height)
+/*
+ * int LoadRegFromFile(char *filename, stDWT *dwt_reg,
+ *         int *yl1_width, int *yl2_width, int *yl3_width, int *yl4_width, int *yl1_height, int *yl2_height, int *yl3_height, int *yl4_height,
+ *         int *uvl1_width, int *uvl2_width, int *uvl3_width, int *uvl4_width, int *uvl1_height, int *uvl2_height, int *uvl3_height, int *uvl4_height)
+ */
+int LoadRegFromFile(stDWT *dwt_reg)
 {
+	int yl1_width,  yl2_width,  yl3_width,  yl4_width,  yl1_height,  yl2_height,  yl3_height,  yl4_height, uvl1_width,  uvl2_width,  uvl3_width,  uvl4_width,  uvl1_height,  uvl2_height,  uvl3_height,  uvl4_height;
 	int *dataptr;
 	int i;
 	int w,h;
 	int ExtW;
 	int ew;
 
-	FILE *fid = fopen(filename, "r");
-	if (fid)
-	{
-		for (i = 0; i < sizeof(struct tag_DWT) / sizeof(int); i++) {
-			dataptr = (int *)(dwt_reg)+i;
-			fscanf(fid, "%08x\n", dataptr);
-		}
-		fclose(fid);		
-	}
-	else {
-		return 0;
-	}
+	/*
+	 * FILE *fid = fopen(filename, "r");
+	 * if (fid)
+	 * {
+	 *         for (i = 0; i < sizeof(struct tag_DWT) / sizeof(int); i++) {
+	 *                 dataptr = (int *)(dwt_reg)+i;
+	 *                 fscanf(fid, "%08x\n", dataptr);
+	 *         }
+	 *         fclose(fid);
+	 * }
+	 * else {
+	 *         return 0;
+	 * }
+	 */
 
 	ExtW = ((dwt_reg->m_nInputWidth + 63)>>6)<<6;
 
@@ -679,32 +676,38 @@ int LoadRegFromFile(char *filename, stDWT *dwt_reg,
 
 
 	//////save register
-	fid = fopen(filename, "wb");
-    if (NULL != fid) {
-        for (i = 0; i < sizeof(struct tag_DWT) / sizeof(int); i++) {
-			dataptr = (int *)(dwt_reg)+i;
-			fprintf(fid, "%08x\n", (*dataptr));
-		}
-        fclose(fid);
-    }
+    /*
+     *     fid = fopen(filename, "wb");
+     * if (NULL != fid) {
+     *     for (i = 0; i < sizeof(struct tag_DWT) / sizeof(int); i++) {
+     *                     dataptr = (int *)(dwt_reg)+i;
+     *                     fprintf(fid, "%08x\n", (*dataptr));
+     *             }
+     *     fclose(fid);
+     * }
+     */
 
 
-	*yl1_width = (dwt_reg->y_width[Layer0] * 10 + 7) / 8;
-	*yl2_width = (dwt_reg->y_width[Layer1] * 10 + 7) / 8;
-	*yl3_width = (dwt_reg->y_width[Layer2] * 10 + 7) / 8;
-	*yl4_width = (dwt_reg->y_width[Layer3] * 10 + 7) / 8;
-	*yl1_height = dwt_reg->y_height[Layer0];
-	*yl2_height = dwt_reg->y_height[Layer1];
-	*yl3_height = dwt_reg->y_height[Layer2];
-	*yl4_height = dwt_reg->y_height[Layer3];
-	*uvl1_width = (dwt_reg->uv_width[Layer0] * 10 + 7) / 8;
-	*uvl2_width = (dwt_reg->uv_width[Layer1] * 10 + 7) / 8;
-	*uvl3_width = (dwt_reg->uv_width[Layer2] * 10 + 7) / 8;
-	*uvl4_width = (dwt_reg->uv_width[Layer3] * 10 + 7) / 8;
-	*uvl1_height = dwt_reg->uv_height[Layer0];
-	*uvl2_height = dwt_reg->uv_height[Layer1];
-	*uvl3_height = dwt_reg->uv_height[Layer2];
-	*uvl4_height = dwt_reg->uv_height[Layer3];
+	yl1_width = (dwt_reg->y_width[Layer0] * 10 + 7) / 8;
+	yl2_width = (dwt_reg->y_width[Layer1] * 10 + 7) / 8;
+	yl3_width = (dwt_reg->y_width[Layer2] * 10 + 7) / 8;
+	yl4_width = (dwt_reg->y_width[Layer3] * 10 + 7) / 8;
+	yl1_height = dwt_reg->y_height[Layer0];
+	yl2_height = dwt_reg->y_height[Layer1];
+	yl3_height = dwt_reg->y_height[Layer2];
+	yl4_height = dwt_reg->y_height[Layer3];
+	uvl1_width = (dwt_reg->uv_width[Layer0] * 10 + 7) / 8;
+	uvl2_width = (dwt_reg->uv_width[Layer1] * 10 + 7) / 8;
+	uvl3_width = (dwt_reg->uv_width[Layer2] * 10 + 7) / 8;
+	uvl4_width = (dwt_reg->uv_width[Layer3] * 10 + 7) / 8;
+	uvl1_height = dwt_reg->uv_height[Layer0];
+	uvl2_height = dwt_reg->uv_height[Layer1];
+	uvl3_height = dwt_reg->uv_height[Layer2];
+	uvl4_height = dwt_reg->uv_height[Layer3];
+
+	printf(" yl1= %dx%d yl2= %dx%d yl3= %dx%d yl4= %dx%d\n""uvl1= %dx%d uvl2= %dx%d uvl3= %dx%d uvl4= %dx%d\n",
+	yl1_width, yl1_height, yl2_width, yl2_height, yl3_width, yl3_height, yl4_width, yl4_height,
+	uvl1_width, uvl1_height, uvl2_width, uvl2_height, uvl3_width, uvl3_height, uvl4_width, uvl4_height);
 
 	return 1;
 }
@@ -724,9 +727,16 @@ void save_unpacket_img(FILE *fid, unsigned short*pIn, int width, int height, int
 	
 }
 
-int dwt_main(int argc, char **argv, 
-	int *yl1_width, int *yl2_width, int *yl3_width, int *yl4_width, int *yl1_height, int *yl2_height, int *yl3_height, int *yl4_height, 
-	int *uvl1_width, int *uvl2_width, int *uvl3_width, int *uvl4_width, int *uvl1_height, int *uvl2_height, int *uvl3_height, int *uvl4_height)
+/*
+ * int dwt_main(int argc, char **argv,
+ *         int *yl1_width, int *yl2_width, int *yl3_width, int *yl4_width, int *yl1_height, int *yl2_height, int *yl3_height, int *yl4_height,
+ *         int *uvl1_width, int *uvl2_width, int *uvl3_width, int *uvl4_width, int *uvl1_height, int *uvl2_height, int *uvl3_height, int *uvl4_height)
+ */
+int dwt_main(unsigned char *yaddr, unsigned char *caddr, int inWidth, int inHeight,
+		unsigned char *yll1, unsigned char *uvll1,
+		unsigned char *yll2, unsigned char *uvll2,
+		unsigned char *yll3, unsigned char *uvll3,
+		unsigned char *yll4, unsigned char *uvll4)
 {
 	int InSize, ExtSize, PacketSize;
 	int InW, InH, ExtW, ExtH;
@@ -734,22 +744,29 @@ int dwt_main(int argc, char **argv,
 	unsigned short *Linebuff_Y[OutputLayerNum] = { NULL };
 	unsigned short *Output_UV[OutputLayerNum] = { NULL };
 	unsigned short *Linebuff_UV[OutputLayerNum] = { NULL };
+	unsigned char *Packed_Y[OutputLayerNum] = {NULL};
+	unsigned char *Packed_UV[OutputLayerNum] = {NULL};
 	unsigned short *pUV;
 	int j, size;
 	int i, k;
 	int w, h;
-	char ww[256];
-	char hh[256];
-	char delims[] = ".";
-	char YL_name[OutputLayerNum][256] = { "_unpacketimage_YLL1.txt" , "_unpacketimage_YLL2.txt" , "_unpacketimage_YLL3.txt" , "_unpacketimage_YLL4.txt" };
-	char UVL_name[OutputLayerNum][256] = { "_unpacketimage_UVLL1.txt" , "_unpacketimage_UVLL2.txt" , "_unpacketimage_UVLL3.txt" , "_unpacketimage_UVLL4.txt" };
-	char pstr[256];
+	/*
+	 * char ww[256];
+	 * char hh[256];
+	 * char delims[] = ".";
+	 * char YL_name[OutputLayerNum][256] = { "_unpacketimage_YLL1.txt" , "_unpacketimage_YLL2.txt" , "_unpacketimage_YLL3.txt" , "_unpacketimage_YLL4.txt" };
+	 * char UVL_name[OutputLayerNum][256] = { "_unpacketimage_UVLL1.txt" , "_unpacketimage_UVLL2.txt" , "_unpacketimage_UVLL3.txt" , "_unpacketimage_UVLL4.txt" };
+	 * char pstr[256];
+	 */
 	stDWT dwt;
 
 
-	if (LoadRegFromFile(argv[2], &dwt, 
-		yl1_width, yl2_width, yl3_width, yl4_width, yl1_height, yl2_height, yl3_height, yl4_height,
-		uvl1_width, uvl2_width, uvl3_width, uvl4_width, uvl1_height, uvl2_height, uvl3_height, uvl4_height))
+	// get parameter from argument instead of load from file
+	dwt.m_nInputWidth = inWidth;
+	dwt.m_nInputHeight = inHeight;
+	if (LoadRegFromFile(&dwt))
+		// yl1_width, yl2_width, yl3_width, yl4_width, yl1_height, yl2_height, yl3_height, yl4_height,
+		// uvl1_width, uvl2_width, uvl3_width, uvl4_width, uvl1_height, uvl2_height, uvl3_height, uvl4_height))
 	{
 		InW = dwt.m_nInputWidth;
 		InH = dwt.m_nInputHeight;
@@ -758,16 +775,18 @@ int dwt_main(int argc, char **argv,
 		InSize = InW * InH;
 
 		/*read pIn yuv image*/
-		unsigned char *pIn = (unsigned char*)malloc(sizeof(unsigned char) * InSize * 3 / 2);
-		FILE *fid = fopen(argv[1], "rb");
-		if (pIn && fid)
-		{
-			fread(pIn, sizeof(unsigned char), InSize * 3 / 2, fid);
-			fclose(fid);
-		}
-		else {
-			fclose(fid);
-		}
+		/*
+		 * unsigned char *pIn = (unsigned char*)malloc(sizeof(unsigned char) * InSize * 3 / 2);
+		 * FILE *fid = fopen(argv[1], "rb");
+		 * if (pIn && fid)
+		 * {
+		 *         fread(pIn, sizeof(unsigned char), InSize * 3 / 2, fid);
+		 *         fclose(fid);
+		 * }
+		 * else {
+		 *         fclose(fid);
+		 * }
+		 */
 
 		/*Size Extender*/
 		ExtSize = ExtW * ExtH;
@@ -788,29 +807,31 @@ int dwt_main(int argc, char **argv,
 		Linebuff_Y[Layer3] = (unsigned short*)malloc(sizeof(unsigned short) * ExtW / 16);
 
 
-		DWT_YProcess(pIn, Output_Y, Linebuff_Y, &dwt, ExtW);
+		DWT_YProcess(yaddr, Output_Y, Linebuff_Y, &dwt, ExtW);
 
 		/*Output Y unpacket image 1~4*/
-		for (i = Layer0, (w = ExtW >> 1); i <= Layer3; i++) {
-			sprintf(ww, "%d", dwt.y_width[i]);
-			sprintf(hh, "%d", dwt.y_height[i]);
-			strcpy(pstr, ww);
-			strcat(pstr, "x");
-			strcat(pstr, hh);
-			strcat(pstr, &YL_name[i][0]);
-			fid = fopen(pstr, "wb");
-			if (fid)
-			{
-				save_unpacket_img(fid, Output_Y[i], dwt.y_width[i], dwt.y_height[i], w);
-				fclose(fid);
-			}
-			else {
-				fclose(fid);
-			}
-
-			w = w >> 1;
-			memset(pstr, 0, sizeof(pstr));
-		}
+/*
+ *                 for (i = Layer0, (w = ExtW >> 1); i <= Layer3; i++) {
+ *                         sprintf(ww, "%d", dwt.y_width[i]);
+ *                         sprintf(hh, "%d", dwt.y_height[i]);
+ *                         strcpy(pstr, ww);
+ *                         strcat(pstr, "x");
+ *                         strcat(pstr, hh);
+ *                         strcat(pstr, &YL_name[i][0]);
+ *                         fid = fopen(pstr, "wb");
+ *                         if (fid)
+ *                         {
+ *                                 save_unpacket_img(fid, Output_Y[i], dwt.y_width[i], dwt.y_height[i], w);
+ *                                 fclose(fid);
+ *                         }
+ *                         else {
+ *                                 fclose(fid);
+ *                         }
+ *
+ *                         w = w >> 1;
+ *                         memset(pstr, 0, sizeof(pstr));
+ *                 }
+ */
 
 
 		/*DWT_UVProcess*/
@@ -835,8 +856,9 @@ int dwt_main(int argc, char **argv,
 		Linebuff_UV[Layer3] = (unsigned short*)malloc(sizeof(unsigned short) * ExtW / 16);
 
 
-		DWT_UVProcess(pIn + InSize, Output_UV, Linebuff_UV, &dwt, ExtW);
+		DWT_UVProcess(caddr, Output_UV, Linebuff_UV, &dwt, ExtW);
 
+#if 0
 		/*Output UV unpacket image 1~4*/
 		for (i = Layer0, (w = ExtW >> 1); i <= Layer3; i++) {
 			sprintf(ww, "%d", dwt.uv_width[i]);
@@ -865,8 +887,18 @@ int dwt_main(int argc, char **argv,
 		PacketSize = PacketSize * 5 / 4;
 		PacketSize += InW * InH;
 		unsigned char *pPacketImage = (unsigned char *)malloc(sizeof(unsigned char) * PacketSize * 3 / 2);
+#endif
 
-		write_packet_image(pPacketImage, InW, InH, ExtW, ExtH, pIn, Output_Y, Output_UV);
+		Packed_Y[Layer0] = yll1;
+		Packed_Y[Layer1] = yll2;
+		Packed_Y[Layer2] = yll3;
+		Packed_Y[Layer3] = yll4;
+		Packed_UV[Layer0] = uvll1;
+		Packed_UV[Layer1] = uvll2;
+		Packed_UV[Layer2] = uvll3;
+		Packed_UV[Layer3] = uvll4;
+		write_packet_image(InW, InH, ExtW, ExtH, Output_Y, Output_UV, Packed_Y, Packed_UV);
+#if 0
 		save_file_packet_image_LL0(pIn, InW, InH);
 		save_file_packet_image(pPacketImage, InW, InH, ExtW, ExtH, &dwt);
 
@@ -874,6 +906,7 @@ int dwt_main(int argc, char **argv,
 		/*free*/
 		free(pPacketImage);
 		free(pIn);
+#endif
 		for (i = Layer0; i <= Layer3; i++) {
 			free(Output_Y[i]);
 			free(Linebuff_Y[i]);

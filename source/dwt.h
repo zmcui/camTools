@@ -24,18 +24,16 @@ typedef struct tag_DWT
 
 
 
-typedef enum {
+enum {
 	Layer0 = 0,
 	Layer1,
 	Layer2,
 	Layer3,
 };
 
-int DWT_YProcess(unsigned char *Input_Y, unsigned short *Output_Y[OutputLayerNum], unsigned short *Linebuff_Y[OutputLayerNum], stDWT *dwt_reg, int ExtW);
-int DWT_UVProcess(unsigned char *Input_UV, unsigned short *Output_UV[OutputLayerNum], unsigned short *Linebuff_UV[OutputLayerNum], stDWT *dwt_reg, int ExtW);
-int Size_Extender(unsigned char *pIn, unsigned char *pOut, int InW, int InH, int OutW, int OutH);
-int dwt_main(int argc, char **argv, 
-	int *yl1_width, int *yl2_width, int *yl3_width, int *yl4_width, int *yl1_height, int *yl2_height, int *yl3_height, int *yl4_height, 
-	int *uvl1_width, int *uvl2_width, int *uvl3_width, int *uvl4_width, int *uvl1_height, int *uvl2_height, int *uvl3_height, int *uvl4_height);
-
+int dwt_main(unsigned char *yaddr, unsigned char *caddr, int inWidth, int inHeight,
+		unsigned char *yll1, unsigned char *uvll1,
+		unsigned char *yll2, unsigned char *uvll2,
+		unsigned char *yll3, unsigned char *uvll3,
+		unsigned char *yll4, unsigned char *uvll4);
 #endif // !__DWT_H
