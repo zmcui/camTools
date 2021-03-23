@@ -13,3 +13,6 @@ add_executable(cppdwt ${DWT_SRC_FILES})
 
 aux_source_directory(./rawGen RAW_SRC_FILES)
 add_executable(rawGen ${RAW_SRC_FILES})
+
+aux_source_directory(./nv12rsz NV12RSZ_SRC_FILES)
+add_executable(nv12rsz ${NV12RSZ_SRC_FILES})
