@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
             height_in = atoi(optarg);
             break;
         case 'i':
-            inputFileName = basename(optarg);
+            inputFileName = optarg;
             break;
         case 'f':
             mipi_raw_format = atoi(optarg);
@@ -115,7 +115,8 @@ int main(int argc, char* argv[])
     }
     size = s.st_size;
     if (size < width_in * height_in * mipi_raw_format / 8) {
-        printf("image %s: size 0x%lx less than 0x%x expected!\n", inputFileName, size, width_in * height_in * mipi_raw_format / 8);
+        printf("image %s: size 0x%lx less than 0x%x expected!\n",
+            inputFileName, size, width_in * height_in * mipi_raw_format / 8);
         exit(1);
     }
 
@@ -127,7 +128,7 @@ int main(int argc, char* argv[])
     }
 
     if (outputFileName[0] == '\0') {
-        snprintf(outputFileName, sizeof(outputFileName), "%s16", inputFileName);
+        snprintf(outputFileName, sizeof(outputFileName), "%s16", basename(inputFileName));
     }
     outputFd = open(outputFileName, O_RDWR | O_CREAT, 00666);
     if (outputFd < 0) {
