@@ -16,3 +16,6 @@ add_executable(rawGen ${RAW_SRC_FILES})
 
 aux_source_directory(./nv12rsz NV12RSZ_SRC_FILES)
 add_executable(nv12rsz ${NV12RSZ_SRC_FILES})
+
+aux_source_directory(./mipirawc MIPIRAW_SRC_FILES)
+add_executable(mipirawc ${MIPIRAW_SRC_FILES})
