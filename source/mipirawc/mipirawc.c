@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "common/common.h"
+
 static void print_usage(char* argv[])
 {
     printf("Usage: %s -w <width> -h <height> -f <data format> -i <infile.raw>\n", argv[0]);
@@ -19,6 +21,8 @@ static void print_usage(char* argv[])
     printf("  -w <widht>       specify width, required for YUV input\n");
     printf("  -h <height>      specify height, required for YUV input\n");
     printf("  -f <mipi format> input file mipi raw data format(10: raw10, 12: raw12)\n");
+    printf("Generic Options:\n");
+    printf("  -v               display the version of this program\n");
     /*
 	 * printf("  -l <left>        bbox left coord\n");
 	 * printf("  -t <top>         bbox top coord\n");
@@ -29,7 +33,6 @@ static void print_usage(char* argv[])
     exit(1);
 }
 
-static const char* threadString = "w:h:i:o:f:l:t:r:b:?";
 int main(int argc, char* argv[])
 {
     int ret = 0, ch;
@@ -45,6 +48,7 @@ int main(int argc, char* argv[])
     char outputFileName[64] = "";
     int mipi_raw_format = 0;
 
+    static const char* threadString = "w:h:i:o:f:l:t:r:b:v?";
     while ((ch = getopt(argc, argv, threadString)) != -1) {
         switch (ch) {
         case 'w':
@@ -71,6 +75,9 @@ int main(int argc, char* argv[])
         case 'b':
             bottom = atoi(optarg);
             break;
+        case 'v':
+            list_version(argv[0]);
+            exit(EXIT_SUCCESS);
         case '?':
             print_usage(argv);
             return -1;

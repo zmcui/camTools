@@ -7,6 +7,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
 ## SUBDIRECTORIES
 ###########################################################
 
+add_subdirectory(common)
+
 add_subdirectory(dwtGen)
 add_subdirectory(rawGen)
 add_subdirectory(nv12rsz)

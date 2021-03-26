@@ -9,6 +9,8 @@
 #include <string.h>
 #include <sys/mman.h>
 
+#include "common/common.h"
+
 static void print_usage(void)
 {
 	printf("Usage: nv12crop -i <infile.nv12>\n");
@@ -21,11 +23,13 @@ static void print_usage(void)
 	printf("  -t <top>         bbox top coord\n");
 	printf("  -r <right>       bbox right coord\n");
 	printf("  -b <bottom>      bbox bottom coord\n");
+    printf("Generic Options:\n");
+    printf("  -v               display the version of this program\n");
 
 	exit(1);
 }
 
-static const char *threadString = "w:h:i:l:t:r:b:?";
+static const char *threadString = "w:h:i:l:t:r:b:v?";
 int main(int argc, char *argv[])
 {
 	int ret = 0, ch;
@@ -71,6 +75,9 @@ int main(int argc, char *argv[])
 			/* printf("option-top bottom:'%s'\n", optarg); */
 			bottom = atoi(optarg);
 			break;
+        case 'v':
+            list_version(argv[0]);
+            exit(EXIT_SUCCESS);
 		case '?':
 			print_usage();
 			return -1;
