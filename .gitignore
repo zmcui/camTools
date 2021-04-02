@@ -1,0 +1,23 @@
+#
+# Normal rules (sorted)
+#
+.*
+build
+compile_commands.json
+#
+# git files that we don't want to ignore even if they are dot-files
+#
+!.gitignore
+!.clang-format
+
+# cscope files
+*cscope.files
+*cscope.in.out
+*cscope.out
+*cscope.po.out
+
+# gnu global files
+GPATH
+GRTAGS
+GSYMS
+GTAGS
