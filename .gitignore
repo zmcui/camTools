@@ -1,14 +1,19 @@
+#Copyright (C) 2019 ASR Micro Limited
+#All Rights Reserved.
 #
 # Normal rules (sorted)
 #
 .*
-build
+/oe-logs
+/oe-workdir
 compile_commands.json
+singletask.lock
 #
 # git files that we don't want to ignore even if they are dot-files
 #
 !.gitignore
 !.clang-format
+!.clang-format-ignore
 
 # cscope files
 *cscope.files
@@ -21,3 +26,27 @@ GPATH
 GRTAGS
 GSYMS
 GTAGS
+
+#target
+build_*
+
+# python compiled bytecode
+*.pyc
+
+# autotool intermediate file
+*Makefile.am
+*Makefile.in
+*build-aux*
+*.m4
+*configure
+*autom4te.cache*
+*config.h.in*
+
+# image files
+*.bmp
+*.raw
+*.nv12
+*.p010
+*_raw.txt
+*_nv12.txt
+*_p010.txt
