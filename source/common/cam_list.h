@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2019 ASR Micro Limited
- * All Rights Reserved.
- */
-
 #ifndef _CAM_LIST_H_
 #define _CAM_LIST_H_
 

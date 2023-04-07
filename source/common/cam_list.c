@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2019 ASR Micro Limited
- * All Rights Reserved.
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>

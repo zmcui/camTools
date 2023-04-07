@@ -1,8 +1,3 @@
-/*
- * Copyright (C) 2021 ASR Micro Limited
- * All Rights Reserved.
- */
-
 #ifndef _CAM_LOG_H_
 #define _CAM_LOG_H_
 
