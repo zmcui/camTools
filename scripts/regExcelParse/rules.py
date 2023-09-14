@@ -45,7 +45,7 @@ class RegfieldRule(Rule):
 	def action(self,block,handler,register,regfield):
 		for i, line in enumerate(block):
 			if "Bits" in line[0] and 'Field (Code)' in line[2]:
-				keys = [_str.strip() for _str in line]
+				keys = [str(_str).strip() for _str in line]
 				break
 		# print keys
 		for line in block[i+1:]:

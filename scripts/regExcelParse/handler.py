@@ -69,7 +69,7 @@ class RegisterRenderer(Handler):
 			print block
 
 	def do_capregfield(self,block,register,regfield):
-		keys = [_str.strip() for _str in block[0]]
+		keys = [str(_str).strip() for _str in block[0]]
 		for row in block[1:]:
 			field_d = {key.strip():str(value).strip() for key,value in zip(keys,row)}
 			try:

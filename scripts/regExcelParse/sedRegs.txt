@@ -1,0 +1,1 @@
+sed -n 's/^#define \(REGS_[^ ]*\).*/\1 RST_\1/p' tmp/*

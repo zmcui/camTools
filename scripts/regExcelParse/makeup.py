@@ -80,7 +80,7 @@ class Parse:
 		self.rules.append(rule)
 
 	def parse(self, file):
-		s_list = [s for s in file if s.name not in ['Overview','DocHistory','Readme','AIBmfpr_list', 'Sheet1','Sheet2'] ]
+		s_list = [s for s in file if s.name not in ['Overview', 'History','DocHistory','Readme','AIBmfpr_list', 'Sheet1','Sheet2'] ]
 		for s in s_list:
 			register = Register(s.name)
 			regfield = RegField()
@@ -146,7 +146,7 @@ if __name__ == '__main__':
 		header_macro1 = header_macro.replace('#ifndef','#define') + ' __FILE__'
 		header_macro2 = '\n#define %s'%micro_base_str
 		# print '\n'.join([header_macro,header_macro1,header_macro2])
-		fobj.write('\n'.join([header_macro,header_macro1,header_macro2]))
+		fobj.write('\n'.join([header_macro,header_macro1]))
 		registers_define_comment_string = '/* registers definitions for %s */'%micro_base_str
 		register_define_list.append('\n\n'+registers_define_comment_string)
 
